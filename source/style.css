@@ -5,6 +5,19 @@ body {
     margin-right: 10% !important;
 }
 
+.user-icon, .user-icon::before {
+    color: #4c735c;
+}
+
+.btn {
+    box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.20);
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #a78f37;
+    margin-bottom: 50px !important;
+    margin-left: 20px;
+}
+
 .conversation {
     background-color: rgba(49, 39, 39, 0.76);
     box-shadow: 4px 8px 8px 4px rgba(0, 0, 0, 0.22);
@@ -20,14 +33,14 @@ body {
 }
 
 .msg-input {
-    display: inline;
+    display: flex;
 }
 
 .text-message {
     box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.20);
     border-radius: 10px;
     padding: 10px;
-    background-color: #735761;
+    background-color: #a78f37;
 }
 
 .message-incoming {
@@ -41,7 +54,7 @@ body {
 }
 
 textarea {
-    margin: 20px;
+    margin-left: 10% !important;
     width: 60%;
     border-radius: 10px;
 }
@@ -57,7 +70,7 @@ textarea {
     box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.12);
     box-sizing: border-box;
     width: 100%;
-    color: #735761;
+    color: #a78f37;
     text-align: left;
     font: bold 16px sans-serif;
     margin: 0 !important;
@@ -66,7 +79,7 @@ textarea {
 }
 
 .main {
-    background-color: #735761;
+    background-color: #4c735c;
     box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.12);
     box-sizing: border-box;
     width: 100%;
@@ -111,7 +124,7 @@ textarea {
 }
 
 .footer h3 span {
-    color: #5383d3;
+    color: #a78f37;
 }
 
 /* Footer links */
@@ -175,7 +188,7 @@ textarea {
 }
 
 .footer .footer-center p a {
-    color: #5383d3;
+    color: #a78f37;
     text-decoration: none;;
 }
 
