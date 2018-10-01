@@ -2,7 +2,7 @@
 
 module.exports = {
   /**
-   * 
+   * This answers just one question as a demo function
    * @param {string} question The question for which the chatbot should provide an answer
    */
   answer(question) {
