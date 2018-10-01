@@ -5,12 +5,10 @@
   "description": "The backend for our chatbot project",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "chatbot",
-    "backend"
-  ],
+  "keywords": ["chatbot", "backend"],
   "author": "Roman UNTILOV",
   "license": "ISC",
   "devDependencies": {
