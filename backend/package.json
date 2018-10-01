@@ -1,0 +1,15 @@
+{
+  "name": "chatbot-backend",
+  "version": "0.0.1",
+  "description": "The backend for our chatbot project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chatbot",
+    "backend"
+  ],
+  "author": "Roman UNTILOV",
+  "license": "ISC"
+}
