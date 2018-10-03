@@ -33,7 +33,7 @@
 
 
     <section class="conversation">
-        <section class="msg-view">
+        <section class="msg-view" id="msg_view">
             <section class="message-incoming"><i class="fa fa-user user-icon"></i>
                 <p class="text-message">[cnt]</p></section>
             <br><br><br><br><br>
@@ -42,7 +42,7 @@
                 <p class="text-message">[cnt]</p></section>
             <br><br><br><br><br>
 
-            <section class="message-outgoing"><i class="fa fa-user user-icon"></i>
+            <section class="message-outgoing" ><i class="fa fa-user user-icon"></i>
                 <p class="text-message">[cnt]</p></section>
             <br><br><br><br><br>
         </section>
@@ -50,8 +50,29 @@
 
         <section class="msg-input">
             <i class="fa fa-user user-icon"></i>
-            <textarea>[cnt]</textarea>
-            <input class="btn" type="submit">
+
+            <script>
+                function new_message() {
+                    var textarea = document.getElementById("input");
+                    var new_message = textarea.value;
+                    var chatWindow = document.getElementById("msg_wiew");
+                    var chat = chatWindow.appendChild(document.createElement("section"));
+                    chat.classList.add("message-outgoing");
+
+                    var uIcon = chat.appendChild(document.createElement("i"));
+                    var uMessage = chat.appendChild(document.createElement("p"));
+                    uMessage.classList.add("text-message");
+                    uMessage.innerHTML = new_message;
+
+                    uIcon.classList.add("fa", "fa-user", "user-icon");
+                    for (var i=0; i<5; i+=1) {
+                        chatWindow.appendChild(document.createElement("br"));
+                    }
+                }
+            </script>
+
+            <textarea id="input">[cnt]</textarea>
+            <input class="btn" type="button" onclick="new_message()">
         </section>
     </section>
 
