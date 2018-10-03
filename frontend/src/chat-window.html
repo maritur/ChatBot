@@ -33,7 +33,7 @@
 
 
     <section class="conversation">
-        <section class="msg-view" id="msg_view">
+        <section class="msg-view" id="msg-view">
             <section class="message-incoming"><i class="fa fa-user user-icon"></i>
                 <p class="text-message">[cnt]</p></section>
             <br><br><br><br><br>
@@ -52,10 +52,10 @@
             <i class="fa fa-user user-icon"></i>
 
             <script>
-                function new_message() {
+                function send_message() {
                     var textarea = document.getElementById("input");
                     var new_message = textarea.value;
-                    var chatWindow = document.getElementById("msg_wiew");
+                    var chatWindow = document.getElementById("msg-view");
                     var chat = chatWindow.appendChild(document.createElement("section"));
                     chat.classList.add("message-outgoing");
 
@@ -68,11 +68,43 @@
                     for (var i=0; i<5; i+=1) {
                         chatWindow.appendChild(document.createElement("br"));
                     }
+
+                    chatWindow.scrollTop = chatWindow.scrollHeight-chatWindow.clientHeight;
+
+                    recieve_message(new_message);
+                }
+
+                function recieve_message(question) {
+                    var request = new XMLHttpRequest();
+
+                    request.onreadystatechange = () => {
+                        if(request.readyState === 4 && request.status === 200) {
+
+                            var chatWindow = document.getElementById("msg-view");
+                            var chat = chatWindow.appendChild(document.createElement("section"));
+                            chat.classList.add("message-incoming");
+
+                            var uIcon = chat.appendChild(document.createElement("i"));
+                            var uMessage = chat.appendChild(document.createElement("p"));
+                            uMessage.classList.add("text-message");
+                            uMessage.innerHTML = request.responseText;
+
+                            uIcon.classList.add("fa", "fa-user", "user-icon");
+                            for (var i = 0; i < 5; i += 1) {
+                                chatWindow.appendChild(document.createElement("br"));
+                            }
+
+                            chatWindow.scrollTop = chatWindow.scrollHeight - chatWindow.clientHeight;
+                        }
+                    }
+
+                    request.open('GET', 'http://localhost:8080/chat?question=' + question, true);
+                    request.send();
                 }
             </script>
 
             <textarea id="input">[cnt]</textarea>
-            <input class="btn" type="button" onclick="new_message()">
+            <input class="btn" type="button" value="Send" onclick="send_message()">
         </section>
     </section>
 
