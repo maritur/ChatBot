@@ -1,0 +1,22 @@
+{
+  "name": "chatbot-backend",
+  "version": "0.0.1",
+  "repository": "https://github.com/MariaTuruta/ChatBot/tree/separate_ends/backend",
+  "description": "The backend for our chatbot project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["chatbot", "backend"],
+  "author": "Roman UNTILOV",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^5.6.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  },
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
