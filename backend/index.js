@@ -1,13 +1,31 @@
 const express = require('express');
-const chatbot = require('./src/chatbot');
+const mysql = require('mysql2/promise');
+const config = require('config');
 
-const app = express();
+const createChatBot = require('./src/chatbot');
 
-app.get('/chat', (request, response, next) => {
-  const question = request.query.question;
-  console.log(`Question: ${question}\nAnswer: ${chatbot.answer(question)}`);
-  response.set('Access-Control-Allow-Origin', '*');
-  response.status(200).json(chatbot.answer(question));
-});
+async function main() {
+  const app = express();
 
-app.listen(8080, '0.0.0.0');
+  const connection = await mysql.createConnection(`${config.mysql_uri}/${config.mysql_db}`);
+
+  const chatbot = createChatBot(connection);
+
+  app.get('/chat', async (request, response) => {
+    const { question } = request.query;
+    const answer = await chatbot.respond(question);
+
+    response.set('Access-Control-Allow-Origin', '*');
+    response.status(200).json(answer);
+
+    console.log(`Message: ${question}\nResponse: ${JSON.stringify(answer)}`);
+  });
+
+  app.listen(8080, '0.0.0.0');
+}
+
+main()
+  .then(() => {
+    console.log('### Server up ###');
+  })
+  .catch(console.error);

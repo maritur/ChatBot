@@ -1,0 +1,2 @@
+- Implement the code flow created by Anna
+- (Optional) Figure out how to implement the communication with websockets
