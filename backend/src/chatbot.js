@@ -51,32 +51,44 @@ module.exports = function createChatBot(connection) {
 
   async function respondToStatement(parsedMessage) {
     const { subject, relation, complement } = parsedMessage;
+    const sentence = await getSentence(parsedMessage); // Caută propoziția și o întoarce dacă o găsește
+    if (sentence) return `Da, ${sentence.subject} ${sentence.relation} ${sentence.complement}.`;
 
-    const query1 = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
-    const query1Results = await connection.execute(query1, [subject, relation, complement]);
-    const query1Rows = query1Results[0];
-
-    if (query1Rows.length > 0) { // Dacă a găsit cel puțin o propoziție, oricum restul sunt duplicate
-      if (query1Rows.length > 1) console.log(`Avertizare: Sunt mai multe propoziții la prima interogare: ${query1Rows}`);
-
-      const sentence = parseRow(query1Rows[0]); // pur și simplu trec din formatul bazei de date în formatul definit în cod, deși pot face să fie același format
-      return `Da, ${sentence.subject} ${sentence.relation} ${sentence.complement}.`;
-    }
-
-    const query2 = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`;
-    const query2Results = await connection.execute(query2, [subject]);
-    const query2Rows = query2Results[0];
-
-    if (query2Rows.length === 0) { // Dacă nu sunt propoziții cu subiectul cerut
+    const complements = getComplements(subject);
+    if (complements.length === 0) {
       // E bine să pun învățarea aici?
       const learnQuery = `INSERT INTO \`${tableName}\` (\`${subjectCol}\`,\`${relationCol}\`,\`${complementCol}\`) VALUES (?, ?, ?)`;
       await connection.execute(learnQuery, [subject, relation, complement]); // TODO: Ar trebui să verific dacă sunt erori aici
       return didntKnow;
     }
 
-    // const senteces = query2Rows.map(row => parseRow(row));
+    if ()
+
+    const sentences = query2Rows.map(row => parseRow(row));
+    console.log(`Propozitiile gasite ${JSON.stringify(senteces)}`);
 
     return thisIsWIP; // Backtracking ??? :)
+  }
+
+  async function getComplements(subject) {
+      const query2 = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
+      const query2Results = await connection.execute(query2, [subject, relation]);
+      const complements = query2Results[0].map(row => row.Complement);
+  }
+
+  async function getSentence(parsedMessage) {
+      const { subject, relation, complement } = parsedMessage;
+      const query1 = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
+      const query1Results = await connection.execute(query1, [subject, relation, complement]);
+      const query1Rows = query1Results[0];
+
+      if (query1Rows.length > 0) { // Dacă a găsit cel puțin o propoziție, oricum restul sunt duplicate
+          if (query1Rows.length > 1) console.log(`Avertizare: Sunt mai multe propoziții la prima interogare: ${query1Rows}`);
+
+          return parseRow(query1Rows[0]); // pur și simplu trec din formatul bazei de date în formatul definit în cod, deși pot face să fie același format
+      }
+
+      return null;
   }
 
   async function respondToCorrection(parsedMessage) {
