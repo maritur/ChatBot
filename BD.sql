@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `chatbot`.`Relatii` (
   `Subiect` VARCHAR(20) NOT NULL,
   `Predicat` VARCHAR(45) NOT NULL,
   `Complement` VARCHAR(45) NOT NULL,
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
