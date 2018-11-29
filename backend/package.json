@@ -1,7 +1,10 @@
 {
   "name": "chatbot-backend",
   "version": "0.0.1",
-  "repository": "https://github.com/MariaTuruta/ChatBot/tree/separate_ends/backend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maritur/ChatBot/tree/separate_ends/backend"
+  },
   "description": "The backend for our chatbot project",
   "main": "index.js",
   "scripts": {
@@ -21,6 +24,7 @@
   },
   "dependencies": {
     "config": "^2.0.1",
+    "debug": "^4.1.0",
     "express": "^4.16.3",
     "mysql2": "^1.6.4",
     "sequelize": "^4.41.2"

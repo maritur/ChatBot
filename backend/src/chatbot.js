@@ -62,8 +62,6 @@ module.exports = function createChatBot(connection) {
       return didntKnow;
     }
 
-    if ()
-
     const sentences = query2Rows.map(row => parseRow(row));
     console.log(`Propozitiile gasite ${JSON.stringify(senteces)}`);
 
