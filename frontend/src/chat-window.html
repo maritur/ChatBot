@@ -2,29 +2,30 @@
 <head>
     <meta charset="utf-8"/>
     <title>ChatBot Home</title>
-    <link href="style.css" rel="stylesheet"/>
+    <link href="style.css" type="text/css" rel="stylesheet"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- FONT AWESOME ICONS  -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- GOOGLE FONTS  -->
     <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'/>
     <link href='http://fonts.googleapis.com/css?family=Lobster' rel='stylesheet' type='text/css'/>
     <!-- BOOTSTRAP -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 </head>
 
 <body>
 
 <header class="pt-1 pb-1 navbar">
-    <h1 class="site-name text-center">[cnt]</h1>
-    <i class="fa fa-icon">[cnt]</i>
-    <img src="link">
+    <h1 class="site-name text-center">ChatBot Trolly</h1>
+    <!--<i class="fa fa-icon">[cnt]</i>-->
+    <img src="bot.png">
 </header>
 
 
 <main class="main">
-    <h3>[cnt]</h3>
+    <h3>Say hello to our bot!</h3>
     <section>
-        <h4>[cnt]</h4>
+        <h4>He loves to meet new people and get to know more about them!</h4>
     </section>
     <br><br>
 
@@ -34,22 +35,24 @@
 
     <section class="conversation">
         <section class="msg-view" id="msg-view">
-            <section class="message-incoming"><i class="fa fa-user user-icon"></i>
-                <p class="text-message">[cnt]</p></section>
+            <section class="message-incoming row align-items-center">
+                <img class="col-5" src="bot.png">
+                <p class="col-3 text-message">[cnt]</p></section>
             <br><br><br><br><br>
 
-            <section class="message-incoming"><i class="fa fa-user user-icon"></i>
-                <p class="text-message">[cnt]</p></section>
+            <section class="message-incoming row align-items-center">
+                <img class="col-5" src="bot.png">
+                <p class="col-3 text-message">[cnt]</p></section>
             <br><br><br><br><br>
 
-            <section class="message-outgoing" ><i class="fa fa-user user-icon"></i>
+            <section class="message-outgoing ">
+                <i class="fa fa-user user-icon"></i>
                 <p class="text-message">[cnt]</p></section>
             <br><br><br><br><br>
         </section>
 
 
         <section class="msg-input">
-            <i class="fa fa-user user-icon"></i>
 
             <script>
                 function send_message() {
@@ -65,11 +68,11 @@
                     uMessage.innerHTML = new_message;
 
                     uIcon.classList.add("fa", "fa-user", "user-icon");
-                    for (var i=0; i<5; i+=1) {
+                    for (var i = 0; i < 5; i += 1) {
                         chatWindow.appendChild(document.createElement("br"));
                     }
 
-                    chatWindow.scrollTop = chatWindow.scrollHeight-chatWindow.clientHeight;
+                    chatWindow.scrollTop = chatWindow.scrollHeight - chatWindow.clientHeight;
 
                     recieve_message(new_message);
                 }
@@ -82,21 +85,20 @@
                     var parsedQuestion = parseMessage(trimmedQuestion);
 
                     request.onreadystatechange = () => {
-                        if(request.readyState === 4 && request.status === 200) {
-                          if (type === "?") {
-                            var response = JSON.parse(request.responseText);
-                            if (typeof(response) === "string") outputIncomingMessage(possibilities);
-                            else {
-                              var possibilities = response;
-                              var {subject, relation, complement} = parsedQuestion;
-                              for (var i = 0, len = possibilities.length; i < len; i += 1) {
-                                if (subject === "_") outputIncomingMessage(`${possibilities[i]} ${relation} ${complement}.`);
-                                else if (relation === "_") outputIncomingMessage(`${subject} ${possibilities[i]} ${complement}.`);
-                                else if (complement === "_") outputIncomingMessage(`${subject} ${relation} ${possibilities[i]}.`);
-                              }
-                            }
-                          }
-                          else outputIncomingMessage(request.responseText);
+                        if (request.readyState === 4 && request.status === 200) {
+                            if (type === "?") {
+                                var response = JSON.parse(request.responseText);
+                                if (typeof (response) === "string") outputIncomingMessage(possibilities);
+                                else {
+                                    var possibilities = response;
+                                    var {subject, relation, complement} = parsedQuestion;
+                                    for (var i = 0, len = possibilities.length; i < len; i += 1) {
+                                        if (subject === "_") outputIncomingMessage(`${possibilities[i]} ${relation} ${complement}.`);
+                                        else if (relation === "_") outputIncomingMessage(`${subject} ${possibilities[i]} ${complement}.`);
+                                        else if (complement === "_") outputIncomingMessage(`${subject} ${relation} ${possibilities[i]}.`);
+                                    }
+                                }
+                            } else outputIncomingMessage(request.responseText);
                         }
                     }
 
@@ -105,30 +107,30 @@
                 }
 
                 function outputIncomingMessage(message) {
-                  var chatWindow = document.getElementById("msg-view");
-                  var chat = chatWindow.appendChild(document.createElement("section"));
-                  chat.classList.add("message-incoming");
+                    var chatWindow = document.getElementById("msg-view");
+                    var chat = chatWindow.appendChild(document.createElement("section"));
+                    chat.classList.add("message-incoming");
 
-                  var uIcon = chat.appendChild(document.createElement("i"));
-                  var uMessage = chat.appendChild(document.createElement("p"));
-                  uMessage.classList.add("text-message");
-                  uMessage.innerHTML = message;
+                    var uIcon = chat.appendChild(document.createElement("i"));
+                    var uMessage = chat.appendChild(document.createElement("p"));
+                    uMessage.classList.add("text-message");
+                    uMessage.innerHTML = message;
 
-                  uIcon.classList.add("fa", "fa-user", "user-icon");
-                  for (var i = 0; i < 5; i += 1) {
-                    chatWindow.appendChild(document.createElement("br"));
-                  }
+                    uIcon.classList.add("fa", "fa-user", "user-icon");
+                    for (var i = 0; i < 5; i += 1) {
+                        chatWindow.appendChild(document.createElement("br"));
+                    }
 
-                  chatWindow.scrollTop = chatWindow.scrollHeight - chatWindow.clientHeight;
+                    chatWindow.scrollTop = chatWindow.scrollHeight - chatWindow.clientHeight;
                 }
 
                 function removeAll(string, substrings) {
                     let response = string;
 
                     for (let i = 0, len = substrings.length; i < len; i += 1) {
-                      while (response.includes(substrings[i])) {
-                        response = response.replace(substrings[i], '');
-                      }
+                        while (response.includes(substrings[i])) {
+                            response = response.replace(substrings[i], '');
+                        }
                     }
 
                     return response;
@@ -141,13 +143,13 @@
 
                     let [subject, relation, complement] = parts;
                     if (len === 3) {
-                      complement = removeAll(complement, ['.', '?', '!']);
+                        complement = removeAll(complement, ['.', '?', '!']);
                     }
 
                     return {
-                      subject,
-                      relation,
-                      complement,
+                        subject,
+                        relation,
+                        complement,
                     };
                 }
             </script>

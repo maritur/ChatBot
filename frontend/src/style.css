@@ -9,6 +9,12 @@ body {
     color: #4c735c;
 }
 
+img {
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+}
+
 .btn {
     box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.20);
     border-radius: 10px;
@@ -64,6 +70,7 @@ section::-webkit-scrollbar-thumb:hover {
 .text-message {
     box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.20);
     border-radius: 10px;
+    height: 40px;
     padding: 10px;
     background-color: #a78f37;
 }
