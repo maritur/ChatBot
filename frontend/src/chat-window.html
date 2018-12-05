@@ -77,29 +77,78 @@
                 function recieve_message(question) {
                     var request = new XMLHttpRequest();
 
+                    var trimmedQuestion = question.trim();
+                    var type = trimmedQuestion.charAt(trimmedQuestion.length - 1);
+                    var parsedQuestion = parseMessage(trimmedQuestion);
+
                     request.onreadystatechange = () => {
                         if(request.readyState === 4 && request.status === 200) {
-
-                            var chatWindow = document.getElementById("msg-view");
-                            var chat = chatWindow.appendChild(document.createElement("section"));
-                            chat.classList.add("message-incoming");
-
-                            var uIcon = chat.appendChild(document.createElement("i"));
-                            var uMessage = chat.appendChild(document.createElement("p"));
-                            uMessage.classList.add("text-message");
-                            uMessage.innerHTML = request.responseText;
-
-                            uIcon.classList.add("fa", "fa-user", "user-icon");
-                            for (var i = 0; i < 5; i += 1) {
-                                chatWindow.appendChild(document.createElement("br"));
+                          if (type === "?") {
+                            var response = JSON.parse(request.responseText);
+                            if (typeof(response) === "string") outputIncomingMessage(possibilities);
+                            else {
+                              var possibilities = response;
+                              var {subject, relation, complement} = parsedQuestion;
+                              for (var i = 0, len = possibilities.length; i < len; i += 1) {
+                                if (subject === "_") outputIncomingMessage(`${possibilities[i]} ${relation} ${complement}.`);
+                                else if (relation === "_") outputIncomingMessage(`${subject} ${possibilities[i]} ${complement}.`);
+                                else if (complement === "_") outputIncomingMessage(`${subject} ${relation} ${possibilities[i]}.`);
+                              }
                             }
-
-                            chatWindow.scrollTop = chatWindow.scrollHeight - chatWindow.clientHeight;
+                          }
+                          else outputIncomingMessage(request.responseText);
                         }
                     }
 
                     request.open('GET', 'http://localhost:8080/chat?question=' + question, true);
                     request.send();
+                }
+
+                function outputIncomingMessage(message) {
+                  var chatWindow = document.getElementById("msg-view");
+                  var chat = chatWindow.appendChild(document.createElement("section"));
+                  chat.classList.add("message-incoming");
+
+                  var uIcon = chat.appendChild(document.createElement("i"));
+                  var uMessage = chat.appendChild(document.createElement("p"));
+                  uMessage.classList.add("text-message");
+                  uMessage.innerHTML = message;
+
+                  uIcon.classList.add("fa", "fa-user", "user-icon");
+                  for (var i = 0; i < 5; i += 1) {
+                    chatWindow.appendChild(document.createElement("br"));
+                  }
+
+                  chatWindow.scrollTop = chatWindow.scrollHeight - chatWindow.clientHeight;
+                }
+
+                function removeAll(string, substrings) {
+                    let response = string;
+
+                    for (let i = 0, len = substrings.length; i < len; i += 1) {
+                      while (response.includes(substrings[i])) {
+                        response = response.replace(substrings[i], '');
+                      }
+                    }
+
+                    return response;
+                }
+
+                function parseMessage(message) {
+                    const parts = message.toLocaleLowerCase().split(' '); // NOTE: Totul e în litere minuscule
+                    const len = parts.length;
+                    if (len < 3 || len > 4) return null;
+
+                    let [subject, relation, complement] = parts;
+                    if (len === 3) {
+                      complement = removeAll(complement, ['.', '?', '!']);
+                    }
+
+                    return {
+                      subject,
+                      relation,
+                      complement,
+                    };
                 }
             </script>
 
