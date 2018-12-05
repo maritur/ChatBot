@@ -5,6 +5,12 @@ body {
     margin-right: 10% !important;
 }
 
+.user {
+    width: 40px;
+    height: 40px;
+    color: #92999f;
+}
+
 .user-icon, .user-icon::before {
     color: #4c735c;
 }
@@ -19,7 +25,7 @@ img {
     box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.20);
     border-radius: 10px;
     padding: 10px;
-    background-color: #a78f37;
+    background-color: #836e7f;
     margin-bottom: 50px !important;
     margin-left: 20px;
 }
@@ -66,13 +72,22 @@ section::-webkit-scrollbar-thumb
 section::-webkit-scrollbar-thumb:hover {
     background: #4c735c;
 }
-
+.icon {
+    width:80px;
+}
 .text-message {
     box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.20);
     border-radius: 10px;
     height: 40px;
     padding: 10px;
-    background-color: #a78f37;
+}
+
+.sent {
+    background-color: #836e7f;
+}
+
+.recieved {
+    background-color: #4c735c;
 }
 
 .message-incoming {
@@ -86,8 +101,7 @@ section::-webkit-scrollbar-thumb:hover {
 }
 
 textarea {
-    margin-left: 10% !important;
-    width: 60%;
+    width: 70%;
     border-radius: 10px;
 }
 

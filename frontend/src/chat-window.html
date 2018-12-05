@@ -17,7 +17,6 @@
 
 <header class="pt-1 pb-1 navbar">
     <h1 class="site-name text-center">ChatBot Trolly</h1>
-    <!--<i class="fa fa-icon">[cnt]</i>-->
     <img src="bot.png">
 </header>
 
@@ -27,32 +26,28 @@
     <section>
         <h4>He loves to meet new people and get to know more about them!</h4>
     </section>
-    <br><br>
 
-
-    <section class="contact-list"></section>
-
-
-    <section class="conversation">
+    <section class="conversation my-5">
         <section class="msg-view" id="msg-view">
             <section class="message-incoming row align-items-center">
-                <img class="col-5" src="bot.png">
-                <p class="col-3 text-message">[cnt]</p></section>
+                <img class="icon" src="bot.png">
+                <p class="text-message recieved">Hey, my namy is Trolly</p></section>
             <br><br><br><br><br>
 
             <section class="message-incoming row align-items-center">
-                <img class="col-5" src="bot.png">
-                <p class="col-3 text-message">[cnt]</p></section>
+                <img class="icon" src="bot.png">
+                <p class="text-message recieved">Let's talk a little!</p></section>
             <br><br><br><br><br>
 
-            <section class="message-outgoing ">
-                <i class="fa fa-user user-icon"></i>
-                <p class="text-message">[cnt]</p></section>
+            <section class="message-outgoing row align-items-center mr-0">
+                <p class="text-message sent">Hi!</p>
+                <img class="icon" src="user-icon.jpg">
+            </section>
             <br><br><br><br><br>
         </section>
 
 
-        <section class="msg-input">
+        <section class="msg-input row justify-content-md-center m-2">
 
             <script>
                 function send_message() {
@@ -60,14 +55,15 @@
                     var new_message = textarea.value;
                     var chatWindow = document.getElementById("msg-view");
                     var chat = chatWindow.appendChild(document.createElement("section"));
-                    chat.classList.add("message-outgoing");
+                    chat.classList.add("message-outgoing", "row", "align-items-center", "mr-0");
 
-                    var uIcon = chat.appendChild(document.createElement("i"));
                     var uMessage = chat.appendChild(document.createElement("p"));
-                    uMessage.classList.add("text-message");
+                    var uIcon = chat.appendChild(document.createElement("img"));
+                    uMessage.classList.add("text-message", "sent");
                     uMessage.innerHTML = new_message;
+                    uIcon.classList.add("icon");
+                    uIcon.setAttribute("src", "user-icon.jpg");
 
-                    uIcon.classList.add("fa", "fa-user", "user-icon");
                     for (var i = 0; i < 5; i += 1) {
                         chatWindow.appendChild(document.createElement("br"));
                     }
@@ -111,12 +107,13 @@
                     var chat = chatWindow.appendChild(document.createElement("section"));
                     chat.classList.add("message-incoming");
 
-                    var uIcon = chat.appendChild(document.createElement("i"));
+                    var uIcon = chat.appendChild(document.createElement("img"));
                     var uMessage = chat.appendChild(document.createElement("p"));
-                    uMessage.classList.add("text-message");
-                    uMessage.innerHTML = message;
+                    uMessage.classList.add("text-message", "recieved", "col-3");
+                    uMessage.innerHTML = new_message;
+                    uIcon.classList.add("col-5");
+                    uIcon.setAttribute("src", "bot.png");
 
-                    uIcon.classList.add("fa", "fa-user", "user-icon");
                     for (var i = 0; i < 5; i += 1) {
                         chatWindow.appendChild(document.createElement("br"));
                     }
@@ -154,7 +151,7 @@
                 }
             </script>
 
-            <textarea id="input">[cnt]</textarea>
+            <textarea id="input" placeholder="Please enter your message here..."></textarea>
             <input class="btn" type="button" value="Send" onclick="send_message()">
         </section>
     </section>
@@ -164,9 +161,9 @@
 
 <footer class="footer">
     <section class="footer-left">
-        <h3>[cnt]</h3>
+        <h3>About Us:</h3>
         <p class="footer-links">
-            [cnt]
+            Out bot was made by <br> Roman Untilov, Minoiu Anna, <br> Turuta Maria, Munteanu Doinita
             <i class="icon"></i>
             <a href="link"></a>
         </p>
@@ -174,17 +171,16 @@
 
     <section class="footer-center">
         <i class="fa fa-phone"></i>
-        <p>[cnt]</p><br>
+        <p>069999999</p><br>
         <i class="fa fa-map-marker"></i>
         <p>
-            <span>[cnt]</span>[cnt]</p>
+            <span>Adress:</span>Chisinau, str.Florilor, UTM</p>
     </section>
 
     <section class="footer-right">
 
         <p class="footer-company-about">
-            <span>[cnt]</span>
-            [cnt]
+            group: <span>IA161</span>
         </p>
         <section class="footer-icons">
             <a href='link'>
