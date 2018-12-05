@@ -6,7 +6,6 @@ const types = {
   correction: 'CORRECTION',
 };
 
-
 const messageNotUnderstood = 'Nu înțeleg mesajul.';
 const messageTypeNotUnderstood = 'Nu înțeleg tipul mesajului';
 const questionNotUnderstood = 'Nu înțeleg întrebarea';
@@ -14,7 +13,7 @@ const dontKnow = 'Nu știu';
 const didntKnow = 'Nu știam, dar de acum voi ști';
 
 // Acest mesaj va trebui înlocuit peste tot cu mesaje specifice pentru fiecare caz sau poate chiar răspunsuri
-const thisIsWIP = 'Încă nu știu cum să răspund la așa tip de mesaj, dar probabil voi ști pe viitor, așa că încearcă din nou peste câteva zile :)';
+// const thisIsWIP = 'Încă nu știu cum să răspund la așa tip de mesaj, dar probabil voi ști pe viitor, așa că încearcă din nou peste câteva zile :)';
 
 const tableName = 'Relatii'; // Denumirea tabelului
 const subjectCol = 'Subiect'; // De aici mai jos merg denumirile celor 3 coloane
@@ -33,7 +32,8 @@ module.exports = function createChatBot(connection) {
 
       const type = getType(trimmedMessage);
 
-      if (!type) { // Dacă mesajul nu se termină cu punct
+      if (!type) {
+        // Dacă mesajul nu se termină cu punct
         console.error(`Nu e înțeles tipul mesajului: ${message}`);
         return messageTypeNotUnderstood;
       }
@@ -52,74 +52,126 @@ module.exports = function createChatBot(connection) {
   async function respondToStatement(parsedMessage) {
     const { subject, relation, complement } = parsedMessage;
     const sentence = await getSentence(parsedMessage); // Caută propoziția și o întoarce dacă o găsește
-    if (sentence) return `Da, ${sentence.subject} ${sentence.relation} ${sentence.complement}.`;
+    if (sentence) return `Da, ${subject} ${relation} ${complement}.`;
 
-    const complements = getComplements(subject);
-    if (complements.length === 0) {
-      // E bine să pun învățarea aici?
-      const learnQuery = `INSERT INTO \`${tableName}\` (\`${subjectCol}\`,\`${relationCol}\`,\`${complementCol}\`) VALUES (?, ?, ?)`;
-      await connection.execute(learnQuery, [subject, relation, complement]); // TODO: Ar trebui să verific dacă sunt erori aici
-      return didntKnow;
+    const complements = await getComplements(subject, relation);
+    if (complements.length > 0) {
+      const cmpResults = await Promise.all(complements.map(itComplement => isEqual(complement, itComplement)));
+
+      for (let i = 0; i < cmpResults.length; i += 1) {
+        if (cmpResults[i]) {
+          return `Nu, ${subject} ${relation} ${complements[i]}`;
+        }
+      }
     }
 
-    const sentences = query2Rows.map(row => parseRow(row));
-    console.log(`Propozitiile gasite ${JSON.stringify(senteces)}`);
-
-    return thisIsWIP; // Backtracking ??? :)
-  }
-
-  async function getComplements(subject) {
-      const query2 = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
-      const query2Results = await connection.execute(query2, [subject, relation]);
-      const complements = query2Results[0].map(row => row.Complement);
-  }
-
-  async function getSentence(parsedMessage) {
-      const { subject, relation, complement } = parsedMessage;
-      const query1 = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
-      const query1Results = await connection.execute(query1, [subject, relation, complement]);
-      const query1Rows = query1Results[0];
-
-      if (query1Rows.length > 0) { // Dacă a găsit cel puțin o propoziție, oricum restul sunt duplicate
-          if (query1Rows.length > 1) console.log(`Avertizare: Sunt mai multe propoziții la prima interogare: ${query1Rows}`);
-
-          return parseRow(query1Rows[0]); // pur și simplu trec din formatul bazei de date în formatul definit în cod, deși pot face să fie același format
-      }
-
-      return null;
-  }
-
-  async function respondToCorrection(parsedMessage) {
-    const { subject, relation, complement } = parsedMessage; // TODO: Verifică dacă nu e vreun '_' printre acestea
     const learnQuery = `INSERT INTO \`${tableName}\` (\`${subjectCol}\`,\`${relationCol}\`,\`${complementCol}\`) VALUES (?, ?, ?)`;
     await connection.execute(learnQuery, [subject, relation, complement]); // TODO: Ar trebui să verific dacă sunt erori aici
     return didntKnow;
   }
 
+  async function isEqual(subject1, subject2) {
+    const query = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`;
+
+    const results1 = await connection.execute(query, [subject1]);
+    const sentences1 = results1[0].map(row => parseRow(row));
+    if (sentences1.length === 0) return false;
+
+    const results2 = await connection.execute(query, [subject2]);
+    const sentences2 = results2[0].map(row => parseRow(row));
+    if (sentences2.length === 0) return false;
+
+    for (let i = 0, len1 = sentences1.length, len2 = sentences2.length; i < len1 && i < len2; i += 1) {
+      if (sentences1[i].relation === sentences2[i].relation && sentences1[i].complement === sentences2[i].complement) return true;
+    }
+
+    return false;
+  }
+
+  async function getComplements(subject, relation) {
+    const query2 = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
+    const query2Results = await connection.execute(query2, [subject, relation]);
+    const complements = query2Results[0].map(row => row.Complement.toLocaleLowerCase());
+
+    return complements;
+  }
+
+  async function getSentence(parsedMessage) {
+    const { subject, relation, complement } = parsedMessage;
+    const query1 = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
+    const query1Results = await connection.execute(query1, [subject, relation, complement]);
+    const query1Rows = query1Results[0];
+
+    if (query1Rows.length > 0) {
+      // Dacă a găsit cel puțin o propoziție, oricum restul sunt duplicate
+      if (query1Rows.length > 1) console.log(`Avertizare: Sunt mai multe propoziții la prima interogare: ${query1Rows}`);
+
+      return parseRow(query1Rows[0]); // pur și simplu trec din formatul bazei de date în formatul definit în cod, deși pot face să fie același format
+    }
+
+    return null;
+  }
+
+  async function respondToCorrection(parsedMessage) {
+    const { subject, relation, complement } = parsedMessage;
+    if (subject === '_' || relation === '_' || complement === '_') return messageNotUnderstood;
+
+    let conflictingComplement;
+    const complements = await getComplements(subject, relation);
+    if (complements.length > 0) {
+      const cmpResults = await Promise.all(complements.map(itComplement => isEqual(complement, itComplement)));
+
+      for (let i = 0; i < cmpResults.length; i += 1) {
+        if (cmpResults[i]) {
+          conflictingComplement = complements[i];
+        }
+      }
+    }
+    if (!conflictingComplement) {
+      const learnQuery = `INSERT INTO \`${tableName}\` (\`${subjectCol}\`,\`${relationCol}\`,\`${complementCol}\`) VALUES (?, ?, ?)`;
+      await connection.execute(learnQuery, [subject, relation, complement]); // TODO: Ar trebui să verific dacă sunt erori aici
+      return didntKnow;
+    }
+
+    const relearnQuery = `UPDATE \`${tableName}\` SET \`${complementCol}\` = ? WHERE \`${complementCol}\` = ?`;
+    await connection.execute(relearnQuery, [complement, conflictingComplement]);
+    return `OK, ${subject} ${relation} ${complement}`;
+  }
+
   async function respondToQuestion(parsedMessage) {
     const { subject, relation, complement } = parsedMessage;
 
-    if (subject === '_') {
+    if (subject === '_' && relation !== '_' && complement !== '_') {
       const query = `SELECT \`${subjectCol}\` FROM \`${tableName}\` WHERE \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
       const results = await connection.execute(query, [relation, complement]);
-      const subjects = results[0].map(row => row.Subiect);
+      const subjects = results[0].map(row => row.Subiect.toLocaleLowerCase()); // TODO: Ar trebui o transformare specific pt asta, in caz ca se schimba den. coloanei
 
       if (subjects.length === 0) return dontKnow;
 
-      if (subjects.length === 1) return subjects[0];
-
       return subjects; // TODO: Ar trebui să trec prin 'JSON.stringify', dacă scap de '.json' din cealaltă parte
     }
-    if (complement === '_') {
+    if (complement === '_' && subject !== '_' && relation !== '_') {
       const query = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
       const results = await connection.execute(query, [subject, relation]);
-      const complements = results[0].map(row => row.Complement);
+      const complements = results[0].map(row => row.Complement.toLocaleLowerCase());
 
       if (complements.length === 0) return dontKnow;
 
-      if (complements.length === 1) return complements[0];
-
       return complements; // TODO: Ar trebui să trec prin 'JSON.stringify', dacă scap de '.json' din cealaltă parte
+    }
+    if (relation === '_' && subject !== '_' && complement !== '_') {
+      const query = `SELECT \`${relationCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${complementCol}\` = ?`;
+      const results = await connection.execute(query, [subject, complement]);
+      const relations = results[0].map(row => row.Predicat.toLocaleLowerCase());
+
+      if (relations.length === 0) return dontKnow;
+
+      return relations; // TODO: Ar trebui să trec prin 'JSON.stringify', dacă scap de '.json' din cealaltă parte
+    }
+    if (subject !== '_' && relation !== '_' && complement !== '_') {
+      const sentence = await getSentence(parsedMessage);
+      if (sentence) return 'Adevărat';
+      return 'Fals';
     }
 
     console.error(`Probleme cu întrebarea: '${subject} ${relation} ${complement}'`);
@@ -170,7 +222,7 @@ module.exports = function createChatBot(connection) {
    * @returns {{subject: string, relation: string, complement: string}} A structured version of the message
    */
   function parseMessage(message) {
-    const parts = message.split(' '); // TODO: Oare trebuie să trec tot în majuscule sau invers, sau lăs tot cum e
+    const parts = message.toLocaleLowerCase().split(' '); // NOTE: Totul e în litere minuscule
     const len = parts.length;
     if (len < 3 || len > 4) return null;
 
@@ -195,9 +247,9 @@ module.exports = function createChatBot(connection) {
     if (!row) return null;
 
     return {
-      subject: row.Subiect,
-      relation: row.Predicat,
-      complement: row.Complement,
+      subject: row.Subiect.toLocaleLowerCase(),
+      relation: row.Predicat.toLocaleLowerCase(),
+      complement: row.Complement.toLocaleLowerCase(),
     };
   }
 
