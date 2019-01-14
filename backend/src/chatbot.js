@@ -74,11 +74,11 @@ module.exports = function createChatBot(connection) {
     const query = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`;
 
     const results1 = await connection.execute(query, [subject1]);
-    const sentences1 = results1[0].map(row => parseRow(row));
+    const sentences1 = results1[0].map(parseRow);
     if (sentences1.length === 0) return false;
 
     const results2 = await connection.execute(query, [subject2]);
-    const sentences2 = results2[0].map(row => parseRow(row));
+    const sentences2 = results2[0].map(parseRow);
     if (sentences2.length === 0) return false;
 
     for (let i = 0, len1 = sentences1.length, len2 = sentences2.length; i < len1 && i < len2; i += 1) {
@@ -91,7 +91,7 @@ module.exports = function createChatBot(connection) {
   async function getComplements(subject, relation) {
     const query2 = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
     const query2Results = await connection.execute(query2, [subject, relation]);
-    const complements = query2Results[0].map(row => row.Complement.toLocaleLowerCase());
+    const complements = query2Results[0].map(getComplementFromRow);
 
     return complements;
   }
@@ -144,64 +144,43 @@ module.exports = function createChatBot(connection) {
     if (subject === '_' && relation !== '_' && complement !== '_') {
       const query = `SELECT \`${subjectCol}\` FROM \`${tableName}\` WHERE \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
       const results = await connection.execute(query, [relation, complement]);
-      const subjects = results[0].map(row => row.Subiect.toLocaleLowerCase()); // TODO: Ar trebui o transformare specific pt asta, in caz ca se schimba den. coloanei
+      const subjects = results[0].map(getSubjectFromRow);
 
       if (subjects.length === 0) return dontKnow;
 
-      return subjects; // TODO: Ar trebui să trec prin 'JSON.stringify', dacă scap de '.json' din cealaltă parte
+      return subjects;
     }
     if (complement === '_' && subject !== '_' && relation !== '_') {
       const query = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
       const results = await connection.execute(query, [subject, relation]);
-      const complements = results[0].map(row => row.Complement.toLocaleLowerCase());
+      const complements = results[0].map(getComplementFromRow);
 
       if (complements.length === 0) return dontKnow;
 
-      return complements; // TODO: Ar trebui să trec prin 'JSON.stringify', dacă scap de '.json' din cealaltă parte
+      return complements;
     }
     if (relation === '_' && subject !== '_' && complement !== '_') {
       const query = `SELECT \`${relationCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${complementCol}\` = ?`;
       const results = await connection.execute(query, [subject, complement]);
-      const relations = results[0].map(row => row.Predicat.toLocaleLowerCase());
+      const relations = results[0].map(getRelationFromRow);
 
       if (relations.length === 0) return dontKnow;
 
-      return relations; // TODO: Ar trebui să trec prin 'JSON.stringify', dacă scap de '.json' din cealaltă parte
+      return relations;
     }
     if (subject !== '_' && relation !== '_' && complement !== '_') {
-      const sentence = await getSentence(parsedMessage);
-      if (sentence) return 'Adevărat';
+      if (await getSentence(parsedMessage)) {
+        return 'Adevărat';
+      }
+      if (await areRelatedThrough(subject, complement, relation)) {
+        return 'Adevărat';
+      }
       return 'Fals';
     }
 
     console.error(`Probleme cu întrebarea: '${subject} ${relation} ${complement}'`);
     return questionNotUnderstood;
   }
-  // const query3 = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`;
-  // const query3Results = await connection.execute(query2And3, [subject]);
-  // const query3Rows = query3Results[0];
-
-  // if (query3Rows.length === 1) { // Dacă va fi găsită doar o propoziție care conține același subiect, aceeași propoziție găsită în prima interogare
-  //   console.error(`Doar propoziția găsită mai sus are subiectul: ${subject}`);
-  //   return thisIsWIP;
-  // }
-
-  // console.log(`Propozițiile de la a doua interogare: ${query3Rows}`);
-
-  // const complements = queryResults.map(row => row.Complement); // TODO: Complementele pot să se repete, trebu de văzut dacă e problemă
-  // console.log(`Complementele de la a treia interogare: ${complements}`);
-
-  // const query4 = `SELECT \`${subjectCol}\` FROM \`${tableName}\` WHERE \`${complementCol}\` IN (?) AND \`${relationCol}\` = ?`;
-  // const query4Results = await connection.execute(query4, [complements, relation]);
-  // const query4Rows = query4Results[0];
-
-  // // NOTE: Verificarea depinde de faptul că complementele de mai sus sunt luate direct din bd fără verificări pe prezența duplicatelor
-  // if (query4Rows.length === complements.length) { // Dacă au fost găsite aceleași propoziții ca și în interogarea precedentă ( merge oare? :) )
-  //   console.error(`Nu e alt subiect decât ${subject} cu aceeași relație față de complementele: ${complements}`);
-  //   return thisIsWIP;
-  // }
-
-  // const subjects = query4Rows.map(row => row.Subiect);
 
   /**
    * Determines the type of a message.
@@ -241,16 +220,52 @@ module.exports = function createChatBot(connection) {
   /**
  * Transforms a row from the database into an object
  * @param {string} row The row containing the sentece
- * @returns {{subject: string, relation: string, complement: string}} A structured version of the row
+ * @returns {{subject?: string, relation?: string, complement?: string}} A structured version of the row
  */
   function parseRow(row) {
     if (!row) return null;
 
+    const subject = row.Subiect ? row.Subiect.toLocaleLowerCase() : null;
+    const relation = row.Predicat ? row.Predicat.toLocaleLowerCase() : null;
+    const complement = row.Complement ? row.Complement.toLocaleLowerCase() : null;
+
     return {
-      subject: row.Subiect.toLocaleLowerCase(),
-      relation: row.Predicat.toLocaleLowerCase(),
-      complement: row.Complement.toLocaleLowerCase(),
+      subject,
+      relation,
+      complement,
     };
+  }
+
+  function getSubjectFromRow(row) {
+    return row.Subiect.toLocaleLowerCase();
+  }
+
+  function getRelationFromRow(row) {
+    return row.Predicat.toLocaleLowerCase();
+  }
+
+  function getComplementFromRow(row) {
+    return row.Complement.toLocaleLowerCase();
+  }
+
+  async function areRelatedThrough(subject, complement, relation) {
+    const relatedQuery = `SELECT \`${subjectCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${relationCol}\` = ?`;
+    const results = await connection.execute(relatedQuery, [relation]);
+
+    let complements = [complement];
+    while (true) {
+      const subjects = results[0].map(parseRow).filter(parsedRow => complements.indexOf(parsedRow.complement) != -1).map(parsedRow => parsedRow.subject);
+      if (subjects.length == 0) {
+        return false;
+      } else {
+        if (subjects.indexOf(subject) != -1) {
+          return true;
+        } else {
+          complements = subjects;
+        }
+      }
+
+    }
   }
 
   // /**

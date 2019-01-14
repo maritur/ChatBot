@@ -31,7 +31,7 @@
         <section class="msg-view" id="msg-view">
             <section class="message-incoming row align-items-center">
                 <img class="icon" src="bot.png">
-                <p class="text-message recieved">Hey, my namy is Trolly</p></section>
+                <p class="text-message recieved">Hey, my name is Trolly</p></section>
             <br><br><br><br><br>
 
             <section class="message-incoming row align-items-center">
@@ -50,7 +50,7 @@
         <section class="msg-input row justify-content-md-center m-2">
 
             <script>
-                function send_message() {
+				function send_message() {
                     var textarea = document.getElementById("input");
                     var new_message = textarea.value;
                     var chatWindow = document.getElementById("msg-view");
@@ -84,7 +84,7 @@
                         if (request.readyState === 4 && request.status === 200) {
                             if (type === "?") {
                                 var response = JSON.parse(request.responseText);
-                                if (typeof (response) === "string") outputIncomingMessage(possibilities);
+                                if (typeof (response) === "string") outputIncomingMessage(response);
                                 else {
                                     var possibilities = response;
                                     var {subject, relation, complement} = parsedQuestion;
@@ -103,18 +103,19 @@
                 }
 
                 function outputIncomingMessage(message) {
+					message = message.replace(/\"/g, "");
                     var chatWindow = document.getElementById("msg-view");
                     var chat = chatWindow.appendChild(document.createElement("section"));
-                    chat.classList.add("message-incoming");
+                    chat.classList.add("message-incoming","row", "align-items-center");
 
                     var uIcon = chat.appendChild(document.createElement("img"));
                     var uMessage = chat.appendChild(document.createElement("p"));
-                    uMessage.classList.add("text-message", "recieved", "col-3");
-                    uMessage.innerHTML = new_message;
-                    uIcon.classList.add("col-5");
+                    uMessage.classList.add("text-message", "recieved");
+                    uMessage.innerHTML = message;
+                    uIcon.classList.add("icon");
                     uIcon.setAttribute("src", "bot.png");
 
-                    for (var i = 0; i < 5; i += 1) {
+                    for (var i = 0; i < 6; i += 1) {
                         chatWindow.appendChild(document.createElement("br"));
                     }
 
@@ -152,9 +153,19 @@
             </script>
 
             <textarea id="input" placeholder="Please enter your message here..."></textarea>
-            <input class="btn" type="button" value="Send" onclick="send_message()">
+            <input id="send" class="btn" type="button" value="Send" onclick="send_message()">
         </section>
     </section>
+	<script>
+		input = document.getElementById("input");
+		input.addEventListener("keyup", function(event) {
+		  event.preventDefault();
+		  if (event.keyCode === 13) {
+			document.getElementById("send").click();
+			document.getElementById("input").value = "";
+		  }
+		});
+	</script>
 
 </main>
 
@@ -163,7 +174,7 @@
     <section class="footer-left">
         <h3>About Us:</h3>
         <p class="footer-links">
-            Out bot was made by <br> Roman Untilov, Minoiu Anna, <br> Turuta Maria, Munteanu Doinita
+            Our bot was made by <br> Roman Untilov, Minoiu Anna, <br> Turuta Maria, Munteanu Doinita
             <i class="icon"></i>
             <a href="link"></a>
         </p>
