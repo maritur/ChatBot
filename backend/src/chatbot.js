@@ -12,8 +12,6 @@ const questionNotUnderstood = 'Nu înțeleg întrebarea';
 const dontKnow = 'Nu știu';
 const didntKnow = 'Nu știam, dar de acum voi ști';
 
-// Acest mesaj va trebui înlocuit peste tot cu mesaje specifice pentru fiecare caz sau poate chiar răspunsuri
-// const thisIsWIP = 'Încă nu știu cum să răspund la așa tip de mesaj, dar probabil voi ști pe viitor, așa că încearcă din nou peste câteva zile :)';
 
 const tableName = 'Relatii'; // Denumirea tabelului
 const subjectCol = 'Subiect'; // De aici mai jos merg denumirile celor 3 coloane
@@ -23,29 +21,34 @@ const complementCol = 'Complement';
 module.exports = function createChatBot(connection) {
   return {
     /**
-     * Provides a response for a message if it can.
-     * @param {string} message The message for which the chatbot should provide an response
-     * @returns {string} The response
+     * Răspunde la un mesaj dacă poate.
+     * @param {string} message Mesajul la care trebuie de oferit un răspuns
+     * @returns {string} Răspunsul oferit
      */
     respond(message) {
-      const trimmedMessage = message.trim();
+      const trimmedMessage = message.trim(); // Elimin spațiile de la început și la sfârșit pentru a ușura procesarea mesajului
 
-      const type = getType(trimmedMessage);
+      const type = getType(trimmedMessage); // Determin tipul mesajului
 
-      if (!type) {
-        // Dacă mesajul nu se termină cu punct
-        console.error(`Nu e înțeles tipul mesajului: ${message}`);
-        return messageTypeNotUnderstood;
+      if (!type) { // Dacă tipul nu a putut fi determinat
+        console.error(`Nu e înțeles tipul mesajului: ${message}`); // Loghez mesajul în consolă
+        return messageTypeNotUnderstood; // Întorc un mesaj de eroare
       }
 
-      const parsedMessage = parseMessage(trimmedMessage);
-      if (!parsedMessage) return messageNotUnderstood;
+      const parsedMessage = parseMessage(trimmedMessage); // Procesez mesajul dintr-un șir de caractere într-un obiect
+      if (!parsedMessage) return messageNotUnderstood; // Dacă mesajul nu a putut fi procesat, întorc un mesaj de eroare corespunzător
 
-      if (type === types.statement) return respondToStatement(parsedMessage);
-      if (type === types.question) return respondToQuestion(parsedMessage);
-      if (type === types.correction) return respondToCorrection(parsedMessage);
+      if (type === types.statement) { // Dacă mesajul e o afirmație
+        return respondToStatement(parsedMessage); // Întorc un răspuns corespunzător afirmației din mesaj
+      }
+      if (type === types.question) { // Dacă mesajul e o întrebare
+        return respondToQuestion(parsedMessage); // Întorc un răspuns corespunzător întrebării din mesaj
+      }
+      if (type === types.correction) { // Dacă mesajul e o corectare
+        return respondToCorrection(parsedMessage); // Întorc un răspuns corespunzător corectării din mesaj
+      }
 
-      return null;
+      return null; // Nu-s sigur dacă va ajunge vreodată programul la acest punct
     },
   };
 
@@ -267,28 +270,4 @@ module.exports = function createChatBot(connection) {
 
     }
   }
-
-  // /**
-  //  * Rudimentary check for statement validity
-  //  * @param {{subject: string, relation: string, complement: string}} parsedMessage The parsed message representing a statement that should be checked
-  //  * @returns {{valid: boolean; correction: string}}
-  //  */
-  // async function verifyStatement(parsedMessage) {
-  //   let query = 'SELECT `subject`, `relation`, `object` FROM `facts` WHERE `subject` = ? AND `relation` = ?';
-  //   const { subject, relation, complement } = parsedMessage;
-  //   const [rows, fields] = await connection.execute(query, [subject, relation]); // eslint-disable-line no-unused-vars
-  //   if (!rows || rows.length === 0) {
-  //     query = 'INSERT INTO `facts` (subject, relation, object) VALUES (?, ?, ?)';
-  //     await connection.execute(query, [subject, relation, complement]);
-  //     return null;
-  //   }
-
-  //   // There should only 1 row here, at least for now
-  //   if (rows[0].object === complement) return { valid: true };
-
-  //   return {
-  //     valid: false,
-  //     correction: `${subject} ${relation} ${rows[0].object}.`,
-  //   };
-  // }
 };
