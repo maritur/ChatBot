@@ -52,29 +52,41 @@ module.exports = function createChatBot(connection) {
     },
   };
 
+  /**
+   * Verifică corectitudinea afirmației din mesajul primit și oferă un răspuns pe baza acesteia
+   * @param {{subject: string, relation: string, complement: string}} parsedMessage Mesajul care conține afirmația
+   * @returns {string} O confirmare - în caz că afirmația e corectă, afirmația corectă - în caz că cea primită e greșită
+   */
   async function respondToStatement(parsedMessage) {
-    const { subject, relation, complement } = parsedMessage;
-    const sentence = await getSentence(parsedMessage); // Caută propoziția și o întoarce dacă o găsește
-    if (sentence) return `Da, ${subject} ${relation} ${complement}.`;
-
-    const complements = await getComplements(subject, relation);
-    if (complements.length > 0) {
-      const cmpResults = await Promise.all(complements.map(itComplement => isEqual(complement, itComplement)));
+    const { subject, relation, complement } = parsedMessage; // Extrag componentele mesajului
+    const sentence = await getSentence(parsedMessage); // Caut propoziția(afirmația) în baza de date
+    if (sentence) return `Da, ${subject} ${relation} ${complement}.`; // Dacă am găsit propoziția(afirmația), întorc un mesaj de confirmare
+    // Dacă nu am găsit afimația, înseamnă că e greșită
+    const complements = await getComplements(subject, relation); // Extrag toate complementele legate de subiectul din afirmație prin relația din afirmație
+    if (complements.length > 0) { // Dacă am găsit complemente, adică sunt afirmații cu același subiect și relație
+      const cmpResults = await Promise.all(complements.map(itComplement => isEqual(complement, itComplement))); // Compar toate complementele cu cel din afirmația primită
 
       for (let i = 0; i < cmpResults.length; i += 1) {
-        if (cmpResults[i]) {
-          return `Nu, ${subject} ${relation} ${complements[i]}`;
+        if (cmpResults[i]) { // Dacă este vreun complemente care e "egal" cu cel afirmația primită
+          return `Nu, ${subject} ${relation} ${complements[i]}`; // Întorc un mesaj cu afirmația corectă
         }
       }
     }
-
-    const learnQuery = `INSERT INTO \`${tableName}\` (\`${subjectCol}\`,\`${relationCol}\`,\`${complementCol}\`) VALUES (?, ?, ?)`;
-    await connection.execute(learnQuery, [subject, relation, complement]); // TODO: Ar trebui să verific dacă sunt erori aici
+    // Dacă nu am găsit nicio afirmație cu subiectul și cu relația primită, înseamnă că nu există și deci o învăț pe aceasta
+    const learnQuery = `INSERT INTO \`${tableName}\` (\`${subjectCol}\`,\`${relationCol}\`,\`${complementCol}\`) VALUES (?, ?, ?)`; // Creez interogarea de învățare a afirmației
+    await connection.execute(learnQuery, [subject, relation, complement]); // Execut interogarea de învățare
+    // TODO: Ar trebui să verific dacă sunt erori aici
     return didntKnow;
   }
 
+  /**
+   * Verifică dacă 2 subiecte sunt legate prin aceeași relație de un complement
+   * @param {string} subject1 Primul subiect
+   * @param {string} subject2 Al doilea subiect
+   * @returns {boolean}
+   */
   async function isEqual(subject1, subject2) {
-    const query = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`;
+    const query = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`; // Interogare de ex
 
     const results1 = await connection.execute(query, [subject1]);
     const sentences1 = results1[0].map(parseRow);
