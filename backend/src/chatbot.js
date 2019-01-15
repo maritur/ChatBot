@@ -23,7 +23,7 @@ module.exports = function createChatBot(connection) {
     /**
      * Răspunde la un mesaj dacă poate.
      * @param {string} message Mesajul la care trebuie de oferit un răspuns
-     * @returns {string} Răspunsul oferit
+     * @returns {Promise<string>} Răspunsul oferit
      */
     respond(message) {
       const trimmedMessage = message.trim(); // Elimin spațiile de la început și la sfârșit pentru a ușura procesarea mesajului
@@ -55,7 +55,7 @@ module.exports = function createChatBot(connection) {
   /**
    * Verifică corectitudinea afirmației din mesajul primit și oferă un răspuns pe baza acesteia
    * @param {{subject: string, relation: string, complement: string}} parsedMessage Mesajul care conține afirmația
-   * @returns {string} O confirmare - în caz că afirmația e corectă, afirmația corectă - în caz că cea primită e greșită
+   * @returns {Promise<string>} O confirmare - în caz că afirmația e corectă, afirmația corectă - în caz că cea primită e greșită
    */
   async function respondToStatement(parsedMessage) {
     const { subject, relation, complement } = parsedMessage; // Extrag componentele mesajului
@@ -83,7 +83,7 @@ module.exports = function createChatBot(connection) {
    * Verifică dacă 2 subiecte sunt legate prin aceeași relație de un complement
    * @param {string} subject1 Primul subiect
    * @param {string} subject2 Al doilea subiect
-   * @returns {boolean}
+   * @returns {Promise<boolean>}
    */
   async function isEqual(subject1, subject2) {
     const query = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ?`; // Interogare de ex
@@ -103,6 +103,12 @@ module.exports = function createChatBot(connection) {
     return false;
   }
 
+  /**
+   * Extrage complementele legate de subiectul specificat prin relația specificată
+   * @param {string} subject Subiectul pentru care de căutat complementele
+   * @param {string} relation Relația prin care subiectul să fie legate de complemente
+   * @returns {Promise<string[]>} Lista de complemente
+   */
   async function getComplements(subject, relation) {
     const query2 = `SELECT \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ?`;
     const query2Results = await connection.execute(query2, [subject, relation]);
@@ -111,6 +117,11 @@ module.exports = function createChatBot(connection) {
     return complements;
   }
 
+  /**
+   * Găsește o propoziție (triplu) în baza de date, dacă există (probabil trebuia să-l fac bool)
+   * @param {{subject: string, relation: string, complement: string}} parsedMessage Mesajul ce conține triplul de căutat
+   * @returns {Promise<{subject?: string, relation?: string, complement?: string}>} Cam aceeși propoziție - dacă a găsit-o, null - dacă nu a găsit-o
+   */
   async function getSentence(parsedMessage) {
     const { subject, relation, complement } = parsedMessage;
     const query1 = `SELECT \`${subjectCol}\`, \`${relationCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${subjectCol}\` = ? AND \`${relationCol}\` = ? AND \`${complementCol}\` = ?`;
@@ -127,6 +138,11 @@ module.exports = function createChatBot(connection) {
     return null;
   }
 
+  /**
+   * Execută o corectarea și oferă un răspuns corespunzător
+   * @param {{subject: string, relation: string, complement: string}} parsedMessage Mesajul cu informația corectă
+   * @returns {Promise<string>} Mesajul de finisarea a corectării
+   */
   async function respondToCorrection(parsedMessage) {
     const { subject, relation, complement } = parsedMessage;
     if (subject === '_' || relation === '_' || complement === '_') return messageNotUnderstood;
@@ -153,6 +169,11 @@ module.exports = function createChatBot(connection) {
     return `OK, ${subject} ${relation} ${complement}`;
   }
 
+  /**
+   * Procesează o întrebare și oferă un răspuns pentru aceasta
+   * @param {{subject: string, relation: string, complement: string}} parsedMessage Mesajul ce conține întrebarea
+   * @returns {Promise<string>} Un mesaj cu răspunsul la întrebare
+   */
   async function respondToQuestion(parsedMessage) {
     const { subject, relation, complement } = parsedMessage;
 
@@ -198,9 +219,9 @@ module.exports = function createChatBot(connection) {
   }
 
   /**
-   * Determines the type of a message.
-   * @param {string} trimmedMessage The message for which the type should be determined
-   * @returns {string} Either 'QUESTION', 'CORRECTION', 'STATEMENT' or null
+   * Determină tipul unui mesaj
+   * @param {string} trimmedMessage Mesajul pentru care trebuie de determinat tipul
+   * @returns {string} 'QUESTION', 'CORRECTION', 'STATEMENT' sau null
    */
   function getType(trimmedMessage) {
     const lastChar = trimmedMessage.charAt(trimmedMessage.length - 1);
@@ -211,9 +232,9 @@ module.exports = function createChatBot(connection) {
   }
 
   /**
-   * Transforms a message from a string into an object
-   * @param {string} message The string containing the message
-   * @returns {{subject: string, relation: string, complement: string}} A structured version of the message
+   * Transformă un mesaj dintr-un șir de caractere într-un obiect
+   * @param {string} message Șirul de caractere care reprezintă mesajul
+   * @returns {{subject: string, relation: string, complement: string}} Mesajul în formă de obiect
    */
   function parseMessage(message) {
     const parts = message.toLocaleLowerCase().split(' '); // NOTE: Totul e în litere minuscule
@@ -233,10 +254,10 @@ module.exports = function createChatBot(connection) {
   }
 
   /**
- * Transforms a row from the database into an object
- * @param {string} row The row containing the sentece
- * @returns {{subject?: string, relation?: string, complement?: string}} A structured version of the row
- */
+   * Transformă un rând din baza de date într-un obiect
+   * @param {string} row Rândul din baza de date
+   * @returns {{subject?: string, relation?: string, complement?: string}} Obiectul primit în urma transformării
+   */
   function parseRow(row) {
     if (!row) return null;
 
@@ -251,18 +272,40 @@ module.exports = function createChatBot(connection) {
     };
   }
 
+  /**
+   * Extrage subiectul dintr-un rând din baza de date
+   * @param {string} row Rândul provenit din baza de date
+   * @returns {string} Subiectul extras
+   */
   function getSubjectFromRow(row) {
     return row.Subiect.toLocaleLowerCase();
   }
 
+  /**
+   * Extrage relația(predicatul) dintr-un rând din baza de date
+   * @param {string} row Rândul provenit din baza de date
+   * @returns {string} Relația extrasă
+   */
   function getRelationFromRow(row) {
     return row.Predicat.toLocaleLowerCase();
   }
 
+  /**
+   * Extrage complementul dintr-un rând din baza de date
+   * @param {string} row Rândul provenit din baza de date
+   * @returns {string} Complementul extras
+   */
   function getComplementFromRow(row) {
     return row.Complement.toLocaleLowerCase();
   }
 
+  /**
+   * Verifică dacă între un subiect și un complement există un lanț pe baza unei și aceeași relații
+   * @param {string} subject Subiect studiat
+   * @param {string} complement Complementul studiat
+   * @param {string} relation Relația pe baza căreia se presupune să fie construit lanțul
+   * @returns {Promise<boolean>} 'true' - dacă există lanțul, 'false' - dacă nu
+   */
   async function areRelatedThrough(subject, complement, relation) {
     const relatedQuery = `SELECT \`${subjectCol}\`, \`${complementCol}\` FROM \`${tableName}\` WHERE \`${relationCol}\` = ?`;
     const results = await connection.execute(relatedQuery, [relation]);
