@@ -1,0 +1,24 @@
+albastru e culoare.
+sur e culoare.
+cerul este albastru.
+
+cerul este sur. (Așteptat: "Nu, cerul este albastru")
+cerul este sur! (Așteptat: "OK, cerul este sur")
+
+cerul este _? (Așteptat: "cerul este sur")
+
+_ este culoare? (Așteptat: "albastru este culoare", "sur este culoare")
+
+cerul este alb? (Așteptat: "Fals")
+cerul este sur? (Așteptat: "Adevărat")
+
+-------------------------------------------------
+
+mamifer este animal.
+maimuta este mamifer.
+om este mamifer.
+ion este om.
+
+ion este mamifer? (Așteptat: "Adevărat")
+ion este animal? (Așteptat: "Adevărat")
+ion este maimuta? (Așteptat: "Fals")

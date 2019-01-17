@@ -16,5 +16,6 @@ services:
     links:
         - mysql
     environment:
-      - MYSQL_URI=mysql://root:parola@db:3306/answers
+      - MYSQL_URI=mysql://root:parola@db:3306
+      - MYSQL_DB=chatbot
       - PORT=8080

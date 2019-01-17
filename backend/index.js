@@ -28,4 +28,12 @@ main()
   .then(() => {
     console.log('### Server up ###');
   })
-  .catch(console.error);
+  .catch((error) => {
+    if (error) {
+      if (error.code === "ECONNREFUSED") {
+        console.error("Eroare: Nu a putut fi stabilita o conexiune la baza de date.\n        Asigurati-vi ca baza de date e pornita si accesibila");
+      } else {
+        console.error(error);
+      }
+    }
+  });
